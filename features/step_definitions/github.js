@@ -1,29 +1,50 @@
-const {Given, When, Then} = require('cucumber');
-const Role = require('testcafe').Role;
-const githubPage = require('../support/pages/github-page');
+import * as describes from '../support/describes';
+import {expect} from 'chai';
 
-Given(/^I open the GitHub page$/, async function() {
-    await testController.navigateTo(githubPage.github.url());
+const Keys = {
+    ENTER: 'enter',
+};
+
+describes.functional('GitHub search results', {
+    browsers: ['chrome'],
+}, async env => {
+    let controller;
+
+    beforeEach(async () => {
+        controller = env.controller;
+        await controller.navigateTo('https://github.com/');
+    });
+
+    it('should contain a result for the search term', async () => {
+        const searchButtonHandle = await controller.findElement('.header-search-input');
+        await controller.type(searchButtonHandle, 'TestCafe');
+        await controller.type(null, Keys.ENTER);
+
+        const title = await controller.getTitle();
+        expect(title).to.match(/TestCafe/);
+
+        const itemHandle = await controller.findElement('.repo-list-item');
+        const itemText = await controller.getElementText(itemHandle)
+        expect(itemText).to.contain('DevExpress/testcafe');
+    });
 });
 
-When(/^I am typing my search request "([^"]*)" on GitHub$/, async function(text) {
-    await testController.typeText(githubPage.github.searchButton(), text);
-});
+describes.functional('GitHub login', {
+    browsers: ['chrome'],
+}, async env => {
+    let controller;
 
-Then(/^I am pressing (.*) key on GitHub$/, async function(text) {
-    await testController.pressKey(text);
-});
+    beforeEach(async () => {
+        controller = env.controller;
+        await controller.navigateTo('https://github.com/login');
+    });
 
-Then(/^I should see that the first GitHub\'s result is (.*)$/, async function(text) {
-    await testController.expect(githubPage.github.firstSearchResult().innerText).contains(text);
-});
+    it('should fail to login with no credentials', async () => {
+        const loginButton = await controller.findElement('.btn.btn-primary.btn-block');
+        await controller.click(loginButton);
 
-const gitHubRoleForExample = Role(githubPage.github.url() + 'login', async function(t) {
-    await t
-        .click(githubPage.github.loginButton())
-        .expect(githubPage.github.loginErrorMessage().innerText).contains('Incorrect username or password.');
-});
-
-Then(/^I am trying to use (.*)$/, async function(text) {
-    await testController.useRole(gitHubRoleForExample);
+        const errorHandle = await controller.findElement('#js-flash-container > div > div');
+        const errorText = await controller.getElementText(errorHandle);
+        expect(errorText).to.contain('Incorrect username or password.');
+    });
 });
