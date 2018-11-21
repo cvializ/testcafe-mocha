@@ -4,14 +4,10 @@ const createTestCafe = require('testcafe');
 
 export function createTestFile(name) {
     const testFile = `
-import errorHandling from './features/support/errorHandling';
 import testControllerHolder from './features/support/testControllerHolder';
 
 fixture('${name}')
 test('test', testControllerHolder.capture)
-    .after(async t => {
-        await errorHandling.ifErrorTakeScreenshot(t);
-    });
 `;
     fs.writeFileSync('test.js', testFile);
 }
