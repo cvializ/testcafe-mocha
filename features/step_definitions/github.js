@@ -1,17 +1,28 @@
-import * as describes from '../support/describes';
 import {expect} from 'chai';
+import {TestCafeController} from './api';
+import {createTestFile, runTest} from '../support/hooks';
+import testControllerHolder from '../support/testControllerHolder';
 
 const Keys = {
     ENTER: 'enter',
 };
 
-describes.functional('GitHub search results', {
-    browsers: ['chrome'],
-}, async env => {
-    let controller;
+createTestFile('fixture');
+runTest(['chrome']);
+
+let controller;
+
+before(function () {
+    this.timeout(10000);
+    return testControllerHolder.get().then(testController => {
+        controller = new TestCafeController(testController);
+    });
+});
+
+describe('GitHub search results', async function(env) {
+    this.timeout(10000);
 
     beforeEach(async () => {
-        controller = env.controller;
         await controller.navigateTo('https://github.com/');
     });
 
@@ -29,13 +40,10 @@ describes.functional('GitHub search results', {
     });
 });
 
-describes.functional('GitHub login', {
-    browsers: ['chrome'],
-}, async env => {
-    let controller;
+describe('GitHub login', async function(env) {
+    this.timeout(10000);
 
     beforeEach(async () => {
-        controller = env.controller;
         await controller.navigateTo('https://github.com/login');
     });
 
